@@ -1,7 +1,6 @@
 package smoketest
 
 import (
-	"bufio"
 	"io"
 	"log"
 	"net"
@@ -28,26 +27,20 @@ func StartServer() {
 		}
 
 		<-concPool
-		go handleRequest(conn)
-		concPool <- true
+		go func(conn net.Conn) {
+			defer func() {
+				concPool <- true
+			}()
+			handleRequest(conn)
+		}(conn)
+
 	}
 }
 
 func handleRequest(conn net.Conn) {
 	defer conn.Close()
 
-	for {
-		msg, err := bufio.NewReader(conn).ReadString('\n')
-		if err != nil {
-			if err == io.EOF {
-				return
-			}
-			log.Println("read message", err)
-		}
-
-		if _, err := conn.Write([]byte(msg)); err != nil {
-			log.Println("conn write", err)
-			return
-		}
+	if _, err := io.Copy(conn, conn); err != nil {
+		return
 	}
 }
