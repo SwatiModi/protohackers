@@ -1,7 +1,9 @@
 package main
 
-import "protohackers/smoketest"
+import (
+	"protohackers/primetime"
+)
 
 func main() {
-	smoketest.StartServer()
+	primetime.StartServer()
 }
