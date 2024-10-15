@@ -2,13 +2,23 @@ package primetime
 
 import (
 	"bufio"
-	"errors"
-	"io"
+	"encoding/json"
 	"log"
+	"math"
 	"net"
-	"strconv"
-	"strings"
 )
+
+var primeMethod = "isPrime"
+
+type request struct {
+	Method string   `json:"method"`
+	Number *float64 `json:"number"`
+}
+
+type response struct {
+	Method string `json:"method"`
+	Prime  bool   `json:"prime"`
+}
 
 func StartServer() {
 	// support 5 simultaneous requests
@@ -45,69 +55,39 @@ func StartServer() {
 func handleRequest(conn net.Conn) {
 	defer conn.Close()
 
-	msg, err := bufio.NewReader(conn).ReadString('\n')
-	if err != nil {
-		if err == io.EOF {
-			return
-		}
-		log.Println("read message", err)
-		return
-	}
+	scanner := bufio.NewScanner(conn)
+	for scanner.Scan() {
+		inbytes := scanner.Bytes()
 
-	n, err := parseRequest(msg)
-	if err != nil {
-		if writeResp([]byte("hello world\n"), conn) != nil {
-			log.Println("write response", err)
-		}
-		return
-	}
+		var req = request{}
+		var respBytes []byte
 
-	var respBytes []byte
-	if isPrime(n) {
-		respBytes = []byte("{\"method\":\"isPrime\", \"prime\":true}\n")
-	} else {
-		respBytes = []byte("{\"method\":\"isPrime\", \"prime\":false}\n")
-	}
-
-	if err := writeResp(respBytes, conn); err != nil {
-		log.Println("write response", err)
-	}
-}
-
-func parseRequest(msg string) (int, error) {
-	var n int = -1
-	var methodExists bool
-	msg = strings.TrimSpace(msg)
-
-	if len(msg) < 2 || msg[0] != '{' || msg[len(msg)-1] != '}' {
-		return 0, errors.New("invalid brackets")
-	}
-
-	kvs := strings.Split(msg[1:len(msg)-1], ",")
-	for _, kv := range kvs {
-		kv = strings.TrimSpace(kv)
-		keyValue := strings.Split(kv, ":")
-		if len(keyValue) != 2 {
-			return 0, errors.New("malformed key-value pair")
-		}
-		key, value := keyValue[0], keyValue[1]
-
-		if key == `"method"` && value == `"isPrime"` {
-			methodExists = true
-			continue
-		} else if key == `"number"` {
-			number, err := strconv.Atoi(value)
-			if err != nil {
-				return 0, err
+		// malformed request case
+		if err := json.Unmarshal(inbytes, &req); err != nil || req.Method != "isPrime" || req.Number == nil {
+			respBytes = []byte("malformed request\n")
+		} else {
+			var resp = response{
+				Method: primeMethod,
 			}
-			n = number
+			n := *req.Number
+
+			if n == math.Trunc(n) && isPrime(int(n)) {
+				resp.Prime = true
+			} else {
+				resp.Prime = false
+			}
+
+			if bytes, err := json.Marshal(resp); err != nil {
+				log.Println("failed to unmarshal")
+			} else {
+				respBytes = append(bytes, 10)
+			}
+		}
+
+		if _, err := conn.Write(respBytes); err != nil {
+			log.Println("write resp", err)
 		}
 	}
-	if methodExists && n >= 0 {
-		return n, nil
-	}
-
-	return 0, errors.New("unknown error")
 }
 
 func isPrime(n int) bool {
@@ -120,13 +100,4 @@ func isPrime(n int) bool {
 		}
 	}
 	return true
-}
-
-func writeResp(bytes []byte, conn net.Conn) error {
-	if _, err := conn.Write(bytes); err != nil {
-		log.Println("conn write", err)
-		return err
-	}
-
-	return nil
 }

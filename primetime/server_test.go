@@ -23,7 +23,7 @@ func TestSmokeServer(t *testing.T) {
 		defer conn.Close()
 
 		msg := "{\"method\":\"isPrime\",\"number\":123}\n"
-		expectedMsg := "{\"method\":\"isPrime\", \"prime\":false}\n"
+		expectedMsg := "{\"method\":\"isPrime\",\"prime\":false}\n"
 
 		if _, err := conn.Write([]byte(msg)); err != nil {
 			t.FailNow()
@@ -47,7 +47,7 @@ func TestSmokeServer(t *testing.T) {
 		defer conn.Close()
 
 		msg := "{\"method\":\"isPrime\",\"number\":46}\n"
-		expectedMsg := "{\"method\":\"isPrime\", \"prime\":false}\n"
+		expectedMsg := "{\"method\":\"isPrime\",\"prime\":false}\n"
 
 		if _, err := conn.Write([]byte(msg)); err != nil {
 			t.FailNow()
@@ -70,8 +70,56 @@ func TestSmokeServer(t *testing.T) {
 
 		defer conn.Close()
 
-		msg := "{\"number\":43,  \"method\":\"isPrime\"}\n"
-		expectedMsg := "{\"method\":\"isPrime\", \"prime\":true}\n"
+		msg := "{\"number\":340903,\"method\":\"isPrime\"}\n"
+		expectedMsg := "{\"method\":\"isPrime\",\"prime\":true}\n"
+
+		if _, err := conn.Write([]byte(msg)); err != nil {
+			t.FailNow()
+		}
+
+		resp, err := bufio.NewReader(conn).ReadString('\n')
+		if err != nil {
+			t.FailNow()
+		}
+
+		assert.Equal(t, expectedMsg, resp)
+	})
+
+	t.Run("basic case : not prime number", func(t *testing.T) {
+		// make a request to localhost 8000
+		conn, err := net.Dial("tcp", "localhost:8000")
+		if err != nil {
+			t.Fatal("failed to start server")
+		}
+
+		defer conn.Close()
+
+		msg := "{\"number\":-3,\"method\":\"isPrime\"}\n"
+		expectedMsg := "{\"method\":\"isPrime\",\"prime\":false}\n"
+
+		if _, err := conn.Write([]byte(msg)); err != nil {
+			t.FailNow()
+		}
+
+		resp, err := bufio.NewReader(conn).ReadString('\n')
+		if err != nil {
+			t.FailNow()
+		}
+
+		assert.Equal(t, expectedMsg, resp)
+	})
+
+	t.Run("basic case : not prime number", func(t *testing.T) {
+		// make a request to localhost 8000
+		conn, err := net.Dial("tcp", "localhost:8000")
+		if err != nil {
+			t.Fatal("failed to start server")
+		}
+
+		defer conn.Close()
+
+		msg := "{\"number\":11.92,\"method\":\"isPrime\"}\n"
+		expectedMsg := "{\"method\":\"isPrime\",\"prime\":false}\n"
 
 		if _, err := conn.Write([]byte(msg)); err != nil {
 			t.FailNow()
@@ -95,7 +143,7 @@ func TestSmokeServer(t *testing.T) {
 		defer conn.Close()
 
 		msg := "{\"method\":\"isPrime\",\"number\":431}\n"
-		expectedMsg := "{\"method\":\"isPrime\", \"prime\":true}\n"
+		expectedMsg := "{\"method\":\"isPrime\",\"prime\":true}\n"
 
 		if _, err := conn.Write([]byte(msg)); err != nil {
 			t.FailNow()
@@ -119,7 +167,7 @@ func TestSmokeServer(t *testing.T) {
 		defer conn.Close()
 
 		msg := "{\"method\":\"isPrime\",\"numbers\":47}\n"
-		expectedMsg := "{\"method\":\"isPrime\", \"prime\":true}\n"
+		expectedMsg := "malformed request\n"
 
 		if _, err := conn.Write([]byte(msg)); err != nil {
 			t.FailNow()
@@ -130,6 +178,6 @@ func TestSmokeServer(t *testing.T) {
 			t.FailNow()
 		}
 
-		assert.NotEqual(t, expectedMsg, resp)
+		assert.Equal(t, expectedMsg, resp)
 	})
 }
