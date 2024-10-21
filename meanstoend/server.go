@@ -9,13 +9,20 @@ import (
 
 func DecodeInput(b []byte) (int, uint32, uint32) {
 	typeByte := b[0]
-	timestamp := b[1:5]
-	price := b[5:]
+	tsBytes := b[1:5]
+	priceBytes := b[5:]
 
-	// log.Println("-------", typeByte, " ", timestamp, " ", price)
-	// log.Println(ParseRequestType(string(typeByte)), convertToDecimal(timestamp), convertToDecimal(price))
+	rt := ParseRequestType(typeByte)
+	if rt == Invalid {
+		return 0, 0, 0
+	}
 
-	return ParseRequestType(string(typeByte)), convertToDecimal(timestamp), convertToDecimal(price)
+	log.Println("rt ", rt)
+
+	timestamp := convertToDecimal(tsBytes)
+	price := convertToDecimal(priceBytes)
+
+	return rt, timestamp, price
 }
 
 func convertToDecimal(b []byte) uint32 {
@@ -44,12 +51,12 @@ const (
 	Q       = 81
 )
 
-func ParseRequestType(s string) int {
+func ParseRequestType(s byte) int {
 	switch s {
-	case "I":
-		return I // 73
-	case "Q":
-		return Q // 81
+	case 73:
+		return I // ASCII FOR I : 73
+	case 81:
+		return Q // ASCII FOR Q : 81
 	default:
 		return Invalid
 	}
@@ -64,7 +71,7 @@ type priceData struct {
 
 var emptyResponse = []byte{0x00, 0x00, 0x00, 0x00}
 
-func encodeResponse(v uint32) []byte {
+func encodeResponse(v int32) []byte {
 	if v == 0 {
 		return emptyResponse
 	}
@@ -110,16 +117,27 @@ func handleRequest(conn net.Conn) {
 	// cant really close the connection here, how does this work /????
 	// wait until client closes it
 	connID := conn.LocalAddr()
+	log.Println("connID", connID)
 
 	for {
 		inBytes := make([]byte, 9)
 		if _, err := io.ReadFull(conn, inBytes); err != nil {
-			_, ok := connData.LoadAndDelete(connID)
-			log.Println("CONN closed, clearning data", ok)
-			break
-		}
+			log.Println(err, " errrrrrrrrr ")
+			if err == io.EOF {
+				_, ok := connData.LoadAndDelete(connID)
+				log.Println("CONN closed, clearning data", ok)
+				break
+			}
 
-		// log.Println("bytes", inBytes)
+			if err == io.ErrUnexpectedEOF {
+				log.Println("undefined behavior")
+				conn.Close()
+				break
+			}
+
+			log.Println("failed to read", err)
+			continue
+		}
 
 		rt, t1, t2 := DecodeInput(inBytes)
 
@@ -156,7 +174,6 @@ func handleRequest(conn net.Conn) {
 					recs := v.([]priceData)
 
 					for _, rec := range recs {
-						// log.Println(rec.timestamp, " ", t1, " ", t2)
 						if rec.timestamp >= t1 && rec.timestamp <= t2 {
 							sum += int(rec.price)
 							numRecs += 1
@@ -164,12 +181,12 @@ func handleRequest(conn net.Conn) {
 					}
 				}
 
-				average := 0
+				var average int32
 				if numRecs > 0 {
-					average = sum / numRecs
+					average = int32(sum / numRecs)
 				}
 
-				conn.Write(encodeResponse(uint32(average)))
+				conn.Write(encodeResponse(average))
 				log.Println("return response", average)
 			}
 		default:

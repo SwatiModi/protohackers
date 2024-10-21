@@ -17,7 +17,20 @@ var outofTimeRangeInput = []byte{0x51, 0x00, 0x00, 0x00, 0xe8, 0x00, 0x01, 0x00,
 func TestServer(t *testing.T) {
 	go meanstoend.StartServer()
 
-	t.Run("valid insert op", func(t *testing.T) {
+	t.Run("invalid insert op", func(t *testing.T) {
+		conn, err := net.Dial("tcp", "localhost:8000")
+		if err != nil {
+			t.Fail()
+		}
+
+		if _, err := conn.Write([]byte("foo=bar")); err != nil {
+			t.Error("write", err)
+		}
+
+		conn.Close()
+	})
+
+	t.Run("valid insert op2", func(t *testing.T) {
 		conn, err := net.Dial("tcp", "localhost:8000")
 		if err != nil {
 			t.Fail()
