@@ -1,30 +1,55 @@
 package meanstoend
 
 import (
-	"bufio"
+	"io"
 	"log"
 	"net"
 	"sync"
 )
 
-func DecodeInput(b []byte) (string, int32, int32) {
-	return "I", 0, 0
+func DecodeInput(b []byte) (int, uint32, uint32) {
+	typeByte := b[0]
+	timestamp := b[1:5]
+	price := b[5:]
+
+	// log.Println("-------", typeByte, " ", timestamp, " ", price)
+	// log.Println(ParseRequestType(string(typeByte)), convertToDecimal(timestamp), convertToDecimal(price))
+
+	return ParseRequestType(string(typeByte)), convertToDecimal(timestamp), convertToDecimal(price)
 }
 
-type RequestType int
+func convertToDecimal(b []byte) uint32 {
+	// handle two's complement
+	if b[0]&0x80 != 0 { // if first bit is set, 0x80 is a special number in binary (10000000).
+		for i := range b {
+			b[i] = ^b[i] // flip bits
+		}
+		val := (bigEndian(b))
+		return -val
+	}
+
+	return bigEndian(b)
+}
+
+func bigEndian(b []byte) uint32 {
+
+	// mathematically we find the big endian by multiplying by powers of 256,
+	// but to do this more efficiently we do byte shifting, 24, 16, 8, 0
+	return uint32(b[0])<<24 | uint32(b[1])<<16 | uint32(b[2])<<8 | uint32(b[3])
+}
 
 const (
-	Invalid RequestType = iota
-	I
-	Q
+	Invalid = 0
+	I       = 73
+	Q       = 81
 )
 
-func ParseRequestType(s string) RequestType {
+func ParseRequestType(s string) int {
 	switch s {
 	case "I":
-		return I
+		return I // 73
 	case "Q":
-		return Q
+		return Q // 81
 	default:
 		return Invalid
 	}
@@ -33,14 +58,24 @@ func ParseRequestType(s string) RequestType {
 var connData = sync.Map{}
 
 type priceData struct {
-	timestamp int32
-	price     int32
+	timestamp uint32
+	price     uint32
 }
 
 var emptyResponse = []byte{0x00, 0x00, 0x00, 0x00}
 
-func encodeResponse(v int) []byte {
-	return emptyResponse
+func encodeResponse(v uint32) []byte {
+	if v == 0 {
+		return emptyResponse
+	}
+
+	res := make([]byte, 4)
+	res[0] = byte(v >> 24)
+	res[1] = byte(v >> 16)
+	res[2] = byte(v >> 8)
+	res[3] = byte(v)
+
+	return res
 }
 
 func StartServer() {
@@ -76,13 +111,19 @@ func handleRequest(conn net.Conn) {
 	// wait until client closes it
 	connID := conn.LocalAddr()
 
-	scanner := bufio.NewScanner(conn)
-	for scanner.Scan() {
-		inBytes := scanner.Bytes()
+	for {
+		inBytes := make([]byte, 9)
+		if _, err := io.ReadFull(conn, inBytes); err != nil {
+			_, ok := connData.LoadAndDelete(connID)
+			log.Println("CONN closed, clearning data", ok)
+			break
+		}
+
+		// log.Println("bytes", inBytes)
 
 		rt, t1, t2 := DecodeInput(inBytes)
 
-		switch ParseRequestType(rt) {
+		switch rt {
 		case I:
 			{
 				pd := priceData{
@@ -108,19 +149,28 @@ func handleRequest(conn net.Conn) {
 					conn.Write(emptyResponse)
 				}
 
-				recs := v.([]priceData)
 				sum := 0
 				numRecs := 0
-				for _, rec := range recs {
-					if rec.timestamp >= t1 && rec.timestamp >= t2 {
-						sum += int(rec.price)
-						numRecs += 1
+
+				if v != nil {
+					recs := v.([]priceData)
+
+					for _, rec := range recs {
+						// log.Println(rec.timestamp, " ", t1, " ", t2)
+						if rec.timestamp >= t1 && rec.timestamp <= t2 {
+							sum += int(rec.price)
+							numRecs += 1
+						}
 					}
 				}
 
-				average := sum / numRecs
+				average := 0
+				if numRecs > 0 {
+					average = sum / numRecs
+				}
 
-				conn.Write(encodeResponse(int(average)))
+				conn.Write(encodeResponse(uint32(average)))
+				log.Println("return response", average)
 			}
 		default:
 		}
