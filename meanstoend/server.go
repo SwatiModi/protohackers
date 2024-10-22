@@ -1,94 +1,16 @@
 package meanstoend
 
 import (
+	"encoding/binary"
 	"io"
 	"log"
 	"net"
-	"sync"
 )
-
-func DecodeInput(b []byte) (int, uint32, uint32) {
-	typeByte := b[0]
-	tsBytes := b[1:5]
-	priceBytes := b[5:]
-
-	rt := ParseRequestType(typeByte)
-	if rt == Invalid {
-		return 0, 0, 0
-	}
-
-	log.Println("rt ", rt)
-
-	timestamp := convertToDecimal(tsBytes)
-	price := convertToDecimal(priceBytes)
-
-	return rt, timestamp, price
-}
-
-func convertToDecimal(b []byte) uint32 {
-	// handle two's complement
-	if b[0]&0x80 != 0 { // if first bit is set, 0x80 is a special number in binary (10000000).
-		for i := range b {
-			b[i] = ^b[i] // flip bits
-		}
-		val := (bigEndian(b))
-		return -val
-	}
-
-	return bigEndian(b)
-}
-
-func bigEndian(b []byte) uint32 {
-
-	// mathematically we find the big endian by multiplying by powers of 256,
-	// but to do this more efficiently we do byte shifting, 24, 16, 8, 0
-	return uint32(b[0])<<24 | uint32(b[1])<<16 | uint32(b[2])<<8 | uint32(b[3])
-}
-
-const (
-	Invalid = 0
-	I       = 73
-	Q       = 81
-)
-
-func ParseRequestType(s byte) int {
-	switch s {
-	case 73:
-		return I // ASCII FOR I : 73
-	case 81:
-		return Q // ASCII FOR Q : 81
-	default:
-		return Invalid
-	}
-}
-
-var connData = sync.Map{}
-
-type priceData struct {
-	timestamp uint32
-	price     uint32
-}
-
-var emptyResponse = []byte{0x00, 0x00, 0x00, 0x00}
-
-func encodeResponse(v int32) []byte {
-	if v == 0 {
-		return emptyResponse
-	}
-
-	res := make([]byte, 4)
-	res[0] = byte(v >> 24)
-	res[1] = byte(v >> 16)
-	res[2] = byte(v >> 8)
-	res[3] = byte(v)
-
-	return res
-}
 
 func StartServer() {
 
-	concPool := make(chan bool, 5)
-	for i := 0; i < 5; i++ {
+	concPool := make(chan bool, 500)
+	for i := 0; i < 500; i++ {
 		concPool <- true
 	}
 
@@ -114,83 +36,63 @@ func StartServer() {
 }
 
 func handleRequest(conn net.Conn) {
-	// cant really close the connection here, how does this work /????
-	// wait until client closes it
-	connID := conn.LocalAddr()
-	log.Println("connID", connID)
+	addr := conn.RemoteAddr()
+	log.Printf("accepted connection (%v)", addr)
+
+	defer func() {
+		conn.Close()
+		log.Printf("closed connection (%v)", addr)
+	}()
+
+	connData := make(map[int32]int32)
+	buf := make([]byte, 9)
 
 	for {
-		inBytes := make([]byte, 9)
-		if _, err := io.ReadFull(conn, inBytes); err != nil {
-			log.Println(err, " errrrrrrrrr ")
-			if err == io.EOF {
-				_, ok := connData.LoadAndDelete(connID)
-				log.Println("CONN closed, clearning data", ok)
-				break
-			}
-
-			if err == io.ErrUnexpectedEOF {
-				log.Println("undefined behavior")
-				conn.Close()
-				break
-			}
-
-			log.Println("failed to read", err)
-			continue
+		if _, err := io.ReadFull(conn, buf); err == io.EOF {
+			break
+		} else if err != nil {
+			// log.Printf("%v (%v)", err, addr)
+			break
 		}
 
-		rt, t1, t2 := DecodeInput(inBytes)
+		t1 := int32(binary.BigEndian.Uint32(buf[1:5]))
+		t2 := int32(binary.BigEndian.Uint32(buf[5:]))
 
-		switch rt {
-		case I:
+		switch buf[0] {
+		case 'I':
+			connData[t1] = t2
+			log.Printf("insert: %v %v (%v)", t1, t2, addr)
+
+		case 'Q':
 			{
-				pd := priceData{
-					timestamp: t1,
-					price:     t2,
-				}
-
-				// insert price data
-				if v, ok := connData.Load(connID); !ok {
-					if recs, valid := v.([]priceData); valid {
-						recs = append(recs, pd)
-						connData.Store(connID, recs)
-					}
-				}
-
-				connData.Store(connID, []priceData{pd})
-			}
-
-		case Q:
-			{
-				v, ok := connData.Load(connID)
-				if !ok {
-					conn.Write(emptyResponse)
-				}
-
+				log.Println("RECEIVED QUERY REQUEST", t1, t2)
 				sum := 0
-				numRecs := 0
+				n := 0
 
-				if v != nil {
-					recs := v.([]priceData)
-
-					for _, rec := range recs {
-						if rec.timestamp >= t1 && rec.timestamp <= t2 {
-							sum += int(rec.price)
-							numRecs += 1
-						}
+				for ts, price := range connData {
+					log.Println("ts", ts)
+					if ts >= t1 && ts <= t2 {
+						sum += int(price)
+						n += 1
 					}
 				}
 
 				var average int32
-				if numRecs > 0 {
-					average = int32(sum / numRecs)
+				if n > 0 {
+					average = int32(sum / n)
 				}
 
-				conn.Write(encodeResponse(average))
-				log.Println("return response", average)
+				out := make([]byte, 4)
+				binary.BigEndian.PutUint32(out, uint32(average))
+
+				if _, err := conn.Write(out); err != nil {
+					log.Printf("%v (%v)", err, addr)
+				} else {
+					log.Printf("query: %v %v ⇒ %v (%v)", t1, t2, out, addr)
+				}
 			}
 		default:
+			log.Printf("received invalid input  { %v } ", buf[0])
 		}
-
 	}
 }

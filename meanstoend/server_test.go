@@ -10,9 +10,15 @@ import (
 )
 
 var insertInput = []byte{0x49, 0x00, 0x00, 0x30, 0x39, 0x00, 0x00, 0x00, 0x65}
-var queryInput = []byte{0x51, 0x00, 0x00, 0x03, 0xe8, 0x00, 0x01, 0x86, 0xa0}
+var queryInput = []byte{0x51, 0x00, 0x00, 0x30, 0x00, 0x00, 0x00, 0x40, 0x00}
 var invalidInput = []byte{0x55, 0x00, 0x00, 0x30, 0x39, 0x00, 0x00, 0x00, 0x65}
-var outofTimeRangeInput = []byte{0x51, 0x00, 0x00, 0x00, 0xe8, 0x00, 0x01, 0x00, 0xa0}
+
+var input1 = []byte{0x49, 0x00, 0x00, 0x30, 0x39, 0x00, 0x00, 0x00, 0x65} // I 12345 101
+var input2 = []byte{0x49, 0x00, 0x00, 0x30, 0x3a, 0x00, 0x00, 0x00, 0x66} // I 12346 102
+var input3 = []byte{0x49, 0x00, 0x00, 0x30, 0x3b, 0x00, 0x00, 0x00, 0x64} // I 12347 100
+var input4 = []byte{0x49, 0x00, 0x00, 0xa0, 0x00, 0x00, 0x00, 0x00, 0x05} // I 40960 5
+
+// var outofTimeRangeInput = []byte{0x51, 0x00, 0x00, 0x00, 0xe8, 0x00, 0x01, 0x00, 0xa0}
 
 func TestServer(t *testing.T) {
 	go meanstoend.StartServer()
@@ -49,7 +55,16 @@ func TestServer(t *testing.T) {
 			t.Fail()
 		}
 
-		if _, err := conn.Write(insertInput); err != nil {
+		if _, err := conn.Write(input1); err != nil {
+			t.Error("write", err)
+		}
+		if _, err := conn.Write(input2); err != nil {
+			t.Error("write", err)
+		}
+		if _, err := conn.Write(input3); err != nil {
+			t.Error("write", err)
+		}
+		if _, err := conn.Write(input4); err != nil {
 			t.Error("write", err)
 		}
 
@@ -62,7 +77,7 @@ func TestServer(t *testing.T) {
 			t.FailNow()
 		}
 
-		// t.Log(resp)
+		t.Log(resp)
 
 		assert.Equal(t, []byte{0x00, 0x00, 0x00, 0x65}, resp)
 		conn.Close()
@@ -124,31 +139,5 @@ func TestServer(t *testing.T) {
 
 	t.Run("out of range query, no results", func(t *testing.T) {
 
-	})
-}
-
-func TestDecoding(t *testing.T) {
-	t.Run("decode insert request", func(t *testing.T) {
-
-		rt, timestamp, price := meanstoend.DecodeInput(insertInput)
-
-		assert.Equal(t, meanstoend.I, rt)
-		assert.Equal(t, uint32(12345), timestamp)
-		assert.Equal(t, uint32(101), price)
-	})
-
-	t.Run("decode query request", func(t *testing.T) {
-
-		rt, minTime, maxTime := meanstoend.DecodeInput(queryInput)
-
-		assert.Equal(t, meanstoend.Q, rt)
-		assert.Equal(t, uint32(1000), minTime)
-		assert.Equal(t, uint32(100000), maxTime)
-	})
-
-	t.Run("invalid request type", func(t *testing.T) {
-		rt, _, _ := meanstoend.DecodeInput(invalidInput)
-
-		assert.Equal(t, meanstoend.Invalid, rt)
 	})
 }
