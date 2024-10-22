@@ -1,9 +1,9 @@
 package main
 
 import (
-	"protohackers/primetime"
+	"protohackers/meanstoend"
 )
 
 func main() {
-	primetime.StartServer()
+	meanstoend.StartServer()
 }
