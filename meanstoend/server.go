@@ -8,9 +8,8 @@ import (
 )
 
 func StartServer() {
-
-	concPool := make(chan bool, 500)
-	for i := 0; i < 500; i++ {
+	concPool := make(chan bool, 5)
+	for i := 0; i < 5; i++ {
 		concPool <- true
 	}
 
@@ -18,6 +17,8 @@ func StartServer() {
 	if err != nil {
 		log.Println("start server", err)
 	}
+
+	log.Printf("listening on port %v", 8000)
 
 	for {
 		conn, err := ln.Accept()
@@ -37,7 +38,6 @@ func StartServer() {
 
 func handleRequest(conn net.Conn) {
 	addr := conn.RemoteAddr()
-	log.Printf("accepted connection (%v)", addr)
 
 	defer func() {
 		conn.Close()
@@ -51,7 +51,7 @@ func handleRequest(conn net.Conn) {
 		if _, err := io.ReadFull(conn, buf); err == io.EOF {
 			break
 		} else if err != nil {
-			// log.Printf("%v (%v)", err, addr)
+			log.Printf("%v (%v)", err, addr)
 			break
 		}
 
@@ -65,12 +65,10 @@ func handleRequest(conn net.Conn) {
 
 		case 'Q':
 			{
-				log.Println("RECEIVED QUERY REQUEST", t1, t2)
 				sum := 0
 				n := 0
 
 				for ts, price := range connData {
-					log.Println("ts", ts)
 					if ts >= t1 && ts <= t2 {
 						sum += int(price)
 						n += 1
