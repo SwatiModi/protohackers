@@ -1,9 +1,9 @@
 package main
 
 import (
-	"protohackers/meanstoend"
+	"protohackers/budgetchat"
 )
 
 func main() {
-	meanstoend.StartServer()
+	budgetchat.StartServer()
 }
