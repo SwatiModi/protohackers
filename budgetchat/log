@@ -1,0 +1,58 @@
+[Wed Dec 11 17:51:56 2024 UTC] [1client.test] NOTE:check starts
+[Wed Dec 11 17:51:56 2024 UTC] [1client.test] NOTE:connected to 35.173.238.131 port 8000
+[Wed Dec 11 17:51:59 2024 UTC] [1client.test] PASS
+[Wed Dec 11 17:52:01 2024 UTC] [2clients.test] NOTE:check starts
+[Wed Dec 11 17:52:01 2024 UTC] [2clients.test] NOTE:watchman connected to 35.173.238.131 port 8000
+[Wed Dec 11 17:52:01 2024 UTC] [2clients.test] NOTE:watchman joined the chat room
+[Wed Dec 11 17:52:01 2024 UTC] [2clients.test] NOTE:alice connected to 35.173.238.131 port 8000
+[Wed Dec 11 17:52:01 2024 UTC] [2clients.test] NOTE:bob connected to 35.173.238.131 port 8000
+[Wed Dec 11 17:52:01 2024 UTC] [2clients.test] NOTE:alice joined the chat room
+[Wed Dec 11 17:52:01 2024 UTC] [2clients.test] NOTE:bob joined the chat room
+[Wed Dec 11 17:52:07 2024 UTC] [2clients.test] PASS
+[Wed Dec 11 17:52:08 2024 UTC] [3illegalname.test] NOTE:check starts
+[Wed Dec 11 17:52:08 2024 UTC] [3illegalname.test] NOTE:connected to 35.173.238.131 port 8000
+[Wed Dec 11 17:52:08 2024 UTC] [3illegalname.test] PASS
+[Wed Dec 11 17:52:09 2024 UTC] [4many.test] NOTE:check starts
+[Wed Dec 11 17:52:09 2024 UTC] [4many.test] NOTE:watchman connected to 35.173.238.131 port 8000
+[Wed Dec 11 17:52:10 2024 UTC] [4many.test] NOTE:watchman joined the chat room
+[Wed Dec 11 17:52:10 2024 UTC] [4many.test] NOTE:PinkFrank953 connected to 35.173.238.131 port 8000
+[Wed Dec 11 17:52:10 2024 UTC] [4many.test] NOTE:PinkFrank953 joined the chat room
+[Wed Dec 11 17:52:10 2024 UTC] [4many.test] NOTE:BigBob613 connected to 35.173.238.131 port 8000
+[Wed Dec 11 17:52:10 2024 UTC] [4many.test] NOTE:BigBob613 joined the chat room
+[Wed Dec 11 17:52:11 2024 UTC] [4many.test] NOTE:BigBob613 (fully joined) disconnected
+[Wed Dec 11 17:52:12 2024 UTC] [4many.test] NOTE:BrownFrank185 connected to 35.173.238.131 port 8000
+[Wed Dec 11 17:52:12 2024 UTC] [4many.test] NOTE:BrownFrank185 joined the chat room
+[Wed Dec 11 17:52:12 2024 UTC] [4many.test] NOTE:CrazyDev51 connected to 35.173.238.131 port 8000
+[Wed Dec 11 17:52:13 2024 UTC] [4many.test] NOTE:CrazyDev51 joined the chat room
+[Wed Dec 11 17:52:14 2024 UTC] [4many.test] NOTE:BrownHacker39 connected to 35.173.238.131 port 8000
+[Wed Dec 11 17:52:14 2024 UTC] [4many.test] NOTE:BrownHacker39 joined the chat room
+[Wed Dec 11 17:52:16 2024 UTC] [4many.test] NOTE:SlimyDave282 connected to 35.173.238.131 port 8000
+[Wed Dec 11 17:52:17 2024 UTC] [4many.test] NOTE:RichWizard575 connected to 35.173.238.131 port 8000
+[Wed Dec 11 17:52:17 2024 UTC] [4many.test] NOTE:RichWizard575 joined the chat room
+[Wed Dec 11 17:52:17 2024 UTC] [4many.test] NOTE:RichWizard575 (fully joined) disconnected
+[Wed Dec 11 17:52:17 2024 UTC] [4many.test] NOTE:LargeDave424 connected to 35.173.238.131 port 8000
+[Wed Dec 11 17:52:18 2024 UTC] [4many.test] NOTE:BrownHacker39 (fully joined) disconnected
+[Wed Dec 11 17:52:18 2024 UTC] [4many.test] NOTE:LargeWizard482 connected to 35.173.238.131 port 8000
+[Wed Dec 11 17:52:18 2024 UTC] [4many.test] NOTE:MadSmith432 connected to 35.173.238.131 port 8000
+[Wed Dec 11 17:52:19 2024 UTC] [4many.test] NOTE:RichCharlie760 connected to 35.173.238.131 port 8000
+[Wed Dec 11 17:52:19 2024 UTC] [4many.test] NOTE:CrazyDev51 (fully joined) disconnected
+[Wed Dec 11 17:52:19 2024 UTC] [4many.test] NOTE:SlimyDave282 (hadn't yet sent name) disconnected
+[Wed Dec 11 17:52:19 2024 UTC] [4many.test] NOTE:RichCharlie760 joined the chat room
+[Wed Dec 11 17:52:19 2024 UTC] [4many.test] NOTE:LargeDave424 (hadn't yet sent name) disconnected
+[Wed Dec 11 17:52:19 2024 UTC] [4many.test] NOTE:RichCharlie760 (fully joined) disconnected
+[Wed Dec 11 17:52:20 2024 UTC] [4many.test] NOTE:LargeWizard482 joined the chat room
+[Wed Dec 11 17:52:20 2024 UTC] [4many.test] NOTE:MadSmith432 joined the chat room
+[Wed Dec 11 17:52:21 2024 UTC] [4many.test] NOTE:SlimyFred820 connected to 35.173.238.131 port 8000
+[Wed Dec 11 17:52:21 2024 UTC] [4many.test] NOTE:PinkFrank953 (fully joined) disconnected
+[Wed Dec 11 17:52:21 2024 UTC] [4many.test] NOTE:SlimyFred820 joined the chat room
+[Wed Dec 11 17:52:21 2024 UTC] [4many.test] NOTE:BigDave774 connected to 35.173.238.131 port 8000
+[Wed Dec 11 17:52:22 2024 UTC] [4many.test] NOTE:LargeWizard482 (fully joined) disconnected
+[Wed Dec 11 17:52:22 2024 UTC] [4many.test] NOTE:BigDave774 (hadn't yet sent name) disconnected
+[Wed Dec 11 17:52:23 2024 UTC] [4many.test] NOTE:SmallAlice460 connected to 35.173.238.131 port 8000
+[Wed Dec 11 17:52:24 2024 UTC] [4many.test] NOTE:SaneHunter615 connected to 35.173.238.131 port 8000
+[Wed Dec 11 17:52:24 2024 UTC] [4many.test] NOTE:SaneHunter615 joined the chat room
+[Wed Dec 11 17:52:24 2024 UTC] [4many.test] NOTE:SlimyFred820 (fully joined) disconnected
+[Wed Dec 11 17:52:24 2024 UTC] [4many.test] NOTE:SaneHunter615 (fully joined) disconnected
+[Wed Dec 11 17:52:24 2024 UTC] [4many.test] NOTE:SmallAlice460 joined the chat room
+[Wed Dec 11 17:52:26 2024 UTC] [4many.test] NOTE:MadSmith432 (fully joined) disconnected
+[Wed Dec 11 17:52:29 2024 UTC] [4many.test] PASS

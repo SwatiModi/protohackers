@@ -6,6 +6,7 @@ import (
 	"net"
 	"protohackers/budgetchat"
 	"testing"
+	"time"
 
 	"github.com/go-playground/assert/v2"
 )
@@ -39,11 +40,11 @@ func TestStartServer(t *testing.T) {
 
 		assert.Equal(t, "Welcome to budgetchat! What shall I call you?\n", msg)
 
-		if _, err := conn1.Write([]byte("user1")); err != nil {
+		if _, err := conn1.Write([]byte("user1\n")); err != nil {
 			t.Error("write", err)
 		}
 
-		msg2, _ := reader.ReadString(('\n'))
+		msg2, _ := reader.ReadString('\n')
 		assert.Equal(t, "* The room contains:\n", msg2)
 
 		log.Println("connecting user2")
@@ -57,7 +58,7 @@ func TestStartServer(t *testing.T) {
 		msg3, _ := reader2.ReadString('\n')
 		assert.Equal(t, "Welcome to budgetchat! What shall I call you?\n", msg3)
 
-		if _, err := conn2.Write([]byte("user2")); err != nil {
+		if _, err := conn2.Write([]byte("user2\n")); err != nil {
 			t.Error("write", err)
 		}
 
@@ -73,5 +74,21 @@ func TestStartServer(t *testing.T) {
 
 		msg6, _ := reader.ReadString('\n')
 		assert.Equal(t, "[user2] Hello user1\n", msg6)
+
+		conn3, err := net.Dial("tcp", "localhost:8000")
+		if err != nil {
+			t.Fail()
+		}
+
+		reader3 := bufio.NewReader(conn3)
+		msg7, _ := reader3.ReadString('\n')
+
+		assert.Equal(t, "Welcome to budgetchat! What shall I call you?\n", msg7)
+
+		if _, err := conn3.Write([]byte("userreuw8723rbdjsay8iyiohwnd1\n")); err != nil {
+			t.Error("write", err)
+		}
+
+		time.Sleep(1 * time.Second)
 	})
 }

@@ -1,12 +1,37 @@
 package budgetchat
 
 import (
+	"bufio"
+	"context"
+	"errors"
 	"log"
 	"net"
 	"regexp"
 	"strings"
 	"sync"
 )
+
+type ClientState int
+
+const (
+	ClientConnected = iota // 0
+	ClientJoined
+	ClientLeft
+)
+
+type Message struct {
+	name string
+	msg  string
+}
+
+var clientList sync.Map // username -> user
+
+type Client struct {
+	name    string
+	msgChan chan Message
+	c       net.Conn
+	state   ClientState
+}
 
 func StartServer() {
 	concPool := make(chan bool, 10)
@@ -38,116 +63,122 @@ func StartServer() {
 }
 
 func handleRequest(conn net.Conn) {
+	ctx := context.TODO()
+	addr := conn.RemoteAddr().String()
 	log.Printf("new connection from %v", conn.RemoteAddr())
-	addr := conn.RemoteAddr()
-	var username string
-
-	defer func() {
-		broadcastMsg(username, message{username, "* " + username + " has left the room\n"})
-		users.Delete(username)
-		conn.Close()
-		log.Printf("closed connection (%v)", addr)
-	}()
 
 	// ask for username on connection
 	conn.Write([]byte("Welcome to budgetchat! What shall I call you?\n"))
 
-	// receive username, validate it, if alright, store user and read chat msgs from users
-	buf := make([]byte, 1024)
-	n, err := conn.Read(buf)
-	if err != nil {
-		log.Println("read username", err)
-		return
+	client := Client{
+		name:    "",
+		msgChan: make(chan Message, 10),
+		c:       conn,
+		state:   ClientConnected,
 	}
 
-	if n < 1 || n > 16 {
-		conn.Write([]byte("Username must be between 1 and 16 characters.\n"))
-		return
-	}
-
-	// strip trailing newline and carrier return chars from username
-	username = strings.TrimSpace(string(buf[:n]))
-	if expr, err := regexp.Compile("^[a-zA-Z0-9_]*$"); err != nil {
-		log.Println("compile regex", err)
-		return
-	} else if expr != nil && !expr.MatchString(username) {
-		conn.Write([]byte("Username must be alphanumeric.\n"))
-		return
-	}
-
-	_, ok := users.Load(username)
-	if ok {
-		conn.Write([]byte("Username already taken."))
-		return
-	}
-
-	uStruct := user{username, make(chan message), conn}
-	// name is valid so welcome msg and store user
-	users.Store(username, uStruct)
-	go receivedChatUpdates(username, uStruct)
-
-	broadcastMsg(username, message{username, "* " + username + " has entered the room\n"})
-
-	introMsg := "* The room contains:"
-	users.Range(func(key, value interface{}) bool {
-		if key.(string) != username {
-			introMsg += " " + key.(string)
-		}
-		return true
-	})
-
-	conn.Write([]byte(introMsg + "\n"))
+	scanner := bufio.NewScanner(conn)
 
 	// check msgs from user, publish to all users
-	for {
-		var buf = make([]byte, 1024)
-		n, err := conn.Read(buf)
-		if err != nil {
-			log.Println("read msg", err)
-			break
-		}
+	for scanner.Scan() {
+		inTxt := scanner.Text()
 
-		if n < 1 || n > 1000 {
-			log.Println("msg too long ", n)
+		// skip longer msgs
+		if len(inTxt) > 1000 {
 			continue
 		}
 
-		log.Println("broadcasting msg from ", username)
-		uMsg := "[" + username + "] " + string(buf[:n]) + "\n"
-		broadcastMsg(username, message{username, uMsg})
+		switch client.state {
+		case ClientConnected:
+			nm := strings.TrimSpace(inTxt)
+			if err := validateUsername(nm, addr); err != nil {
+				log.Printf("-----invalid name %v", err)
+				goto DISCONNECT
+			}
+
+			log.Printf("user %v has joined", nm)
+
+			client.name = nm
+			client.state = ClientJoined
+
+			// name is valid so welcome msg and store user
+			clientList.Store(addr, client)
+			go receivedChatUpdates(ctx, client)
+
+			broadcastMsg(Message{nm, "* " + nm + " has entered the room\n"})
+
+			introMsg := "* The room contains:"
+			clientList.Range(func(key, value interface{}) bool {
+				cl := value.(Client)
+				if cl.name != client.name {
+					introMsg += " " + cl.name
+				}
+				return true
+			})
+
+			conn.Write([]byte(introMsg + "\n"))
+		case ClientJoined:
+			log.Printf("broadcasting msg from %v : %v", client.name, inTxt)
+			uMsg := "[" + client.name + "] " + inTxt + "\n"
+			broadcastMsg(Message{client.name, uMsg})
+		}
 	}
+
+	clientList.Delete(addr)
+	client.state = ClientLeft
+
+DISCONNECT:
+	conn.Close()
+	ctx.Done()
+	if len(client.name) > 0 {
+		broadcastMsg(Message{client.name, "* " + client.name + " has left the room\n"})
+	}
+	log.Printf("closed connection (%v) - (%v)", addr, client.name)
 }
 
-type message struct {
-	username string
-	msg      string
-}
+func broadcastMsg(msg Message) {
+	clientList.Range(func(key, value interface{}) bool {
+		userS := value.(Client)
 
-var users sync.Map // username -> user
-
-type user struct {
-	name    string
-	msgChan chan message
-	conn    net.Conn
-}
-
-func broadcastMsg(username string, msg message) {
-	users.Range(func(key, value interface{}) bool {
-		userS := value.(user)
-
-		if userS.conn != nil && userS.name != username {
-			log.Printf("sending msg to %v", key)
+		if userS.c != nil && userS.name != msg.name {
+			log.Printf("sending msg to %v", userS.name)
 			userS.msgChan <- msg
 		}
 		return true
 	})
 }
 
-func receivedChatUpdates(username string, u user) {
+func receivedChatUpdates(ctx context.Context, u Client) {
 	for {
-		m := <-u.msgChan
-		if m.username != username {
-			u.conn.Write([]byte(m.msg))
+		select {
+		case <-ctx.Done():
+			log.Println("stop receiving updates", u.name)
+			return
+		case mg := <-u.msgChan:
+			if mg.name != u.name {
+				u.c.Write([]byte(mg.msg))
+			}
 		}
 	}
+}
+
+func validateUsername(name string, addr string) error {
+	n := len(name)
+	log.Println("validateUsername", n)
+	if n < 1 || n > 16 {
+		return errors.New("username must be between 1 and 16 characters")
+	}
+
+	// strip trailing newline and carrier return chars from username
+	expr, _ := regexp.Compile("^[a-zA-Z0-9_]*$")
+	if expr != nil && !expr.MatchString(name) {
+		return errors.New("username must be alphanumeric")
+	}
+
+	_, ok := clientList.Load(addr)
+	if ok {
+		return errors.New("username already taken")
+	}
+
+	return nil
 }
