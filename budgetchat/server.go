@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 	"regexp"
+	"strings"
 	"sync"
 )
 
@@ -42,6 +43,7 @@ func handleRequest(conn net.Conn) {
 	var username string
 
 	defer func() {
+		broadcastMsg(username, message{username, "* " + username + " has left the room\n"})
 		users.Delete(username)
 		conn.Close()
 		log.Printf("closed connection (%v)", addr)
@@ -63,15 +65,16 @@ func handleRequest(conn net.Conn) {
 		return
 	}
 
+	// strip trailing newline and carrier return chars from username
+	username = strings.TrimSpace(string(buf[:n]))
 	if expr, err := regexp.Compile("^[a-zA-Z0-9_]*$"); err != nil {
 		log.Println("compile regex", err)
 		return
-	} else if expr != nil && !expr.Match(buf[:n]) {
+	} else if expr != nil && !expr.MatchString(username) {
 		conn.Write([]byte("Username must be alphanumeric.\n"))
 		return
 	}
 
-	username = string(buf[:n])
 	_, ok := users.Load(username)
 	if ok {
 		conn.Write([]byte("Username already taken."))
