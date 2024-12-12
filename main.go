@@ -1,9 +1,9 @@
 package main
 
 import (
-	"protohackers/budgetchat"
+	"protohackers/unusualdbprogram"
 )
 
 func main() {
-	budgetchat.StartServer()
+	unusualdbprogram.StartServer()
 }

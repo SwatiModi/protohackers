@@ -6,7 +6,6 @@ import (
 	"net"
 	"strings"
 	"sync"
-	"time"
 )
 
 var store = sync.Map{}
@@ -26,36 +25,39 @@ func StartServer() {
 		log.Fatal("start server", err)
 	}
 
-	log.Printf("listening on port %v", 8000)
-	buff := make([]byte, 1024)
-	timeout := time.Second * 5
-
+	log.Printf("Listening on port %v", 8000)
 	for {
+		buff := make([]byte, 1024)
 		n, addr, err := pc.ReadFrom(buff)
 		if err != nil {
-			log.Println("accept conn", err)
+			log.Printf("Error reading from connection: %v", err)
+			continue
 		}
 
-		log.Printf("received %v bytes from %v", n, addr.String())
+		handleRequest(pc, addr, buff[:n])
+	}
+}
 
-		// set timeout deadline to udp write
-		deadline := time.Now().Add(timeout)
+func handleRequest(pc net.PacketConn, addr net.Addr, data []byte) {
+	reqType, key, value := getKeyValue(string(data))
 
-		if err := pc.SetWriteDeadline(deadline); err != nil {
-			log.Println("set write deadline", err)
+	switch reqType {
+	case InsertRequest:
+		if key == "version" {
+			log.Printf("Cannot insert version")
+			return
 		}
-
-		reqType, key, value := getKeyValue(string(buff[:n]))
-		if reqType == InsertRequest {
-			store.Store(key, value)
+		store.Store(key, value)
+		log.Printf("Inserted: %s=%s", key, value)
+	case RetreiveRequest:
+		val, ok := store.Load(key)
+		if !ok {
+			// no resp for key not found
+			log.Printf("Key not found: %s", key)
 		} else {
-			val, ok := store.Load(key)
-			if !ok {
-				pc.WriteTo([]byte("Key not found"), addr)
-			} else {
-				resp := fmt.Sprintf("%v=%v", key, val)
-				pc.WriteTo([]byte(resp), addr)
-			}
+			resp := fmt.Sprintf("%s=%s", key, val)
+			pc.WriteTo([]byte(resp), addr)
+			log.Printf("Retrieved: %s", resp)
 		}
 	}
 }
