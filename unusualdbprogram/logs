@@ -1,0 +1,23 @@
+[Thu Dec 12 08:48:02 2024 UTC] [0simple.test] NOTE:check starts
+[Thu Dec 12 08:48:02 2024 UTC] [0simple.test] PASS
+[Thu Dec 12 08:48:03 2024 UTC] [1users.test] NOTE:check starts
+[Thu Dec 12 08:48:03 2024 UTC] [1users.test] NOTE:inserting 20 usernames and checking them
+[Thu Dec 12 08:48:07 2024 UTC] [1users.test] PASS
+[Thu Dec 12 08:48:08 2024 UTC] [2products.test] NOTE:check starts
+[Thu Dec 12 08:48:08 2024 UTC] [2products.test] NOTE:inserting 500 JSON product records
+[Thu Dec 12 08:48:19 2024 UTC] [2products.test] NOTE:checking 100 JSON product records selected at random
+[Thu Dec 12 08:48:24 2024 UTC] [2products.test] NOTE:no value for 'product.51275' (response packet dropped?)
+[Thu Dec 12 08:48:24 2024 UTC] [2products.test] NOTE:no value for 'product.50991' (response packet dropped?)
+[Thu Dec 12 08:48:24 2024 UTC] [2products.test] NOTE:no value for 'product.51258' (response packet dropped?)
+[Thu Dec 12 08:48:24 2024 UTC] [2products.test] NOTE:no value for 'product.50910' (response packet dropped?)
+[Thu Dec 12 08:48:24 2024 UTC] [2products.test] NOTE:no value for 'product.50894' (response packet dropped?)
+[Thu Dec 12 08:48:24 2024 UTC] [2products.test] PASS
+[Thu Dec 12 08:48:25 2024 UTC] [3version.test] NOTE:check starts
+[Thu Dec 12 08:48:25 2024 UTC] [3version.test] NOTE:checking 'version' implementation
+[Thu Dec 12 08:48:25 2024 UTC] [3version.test] NOTE:got server version '0.0.1'
+[Thu Dec 12 08:48:25 2024 UTC] [3version.test] PASS
+[Thu Dec 12 08:48:26 2024 UTC] [4edgecases.test] NOTE:check starts
+[Thu Dec 12 08:48:26 2024 UTC] [4edgecases.test] NOTE:checking edge cases
+[Thu Dec 12 08:48:28 2024 UTC] [4edgecases.test] NOTE:inserting value for ProtoBob684, and waiting for it to update
+[Thu Dec 12 08:48:28 2024 UTC] [4edgecases.test] NOTE:overwriting value for ProtoBob684, and waiting for it to update
+[Thu Dec 12 08:48:28 2024 UTC] [4edgecases.test] PASS
