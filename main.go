@@ -1,9 +1,9 @@
 package main
 
 import (
-	"protohackers/unusualdbprogram"
+	"protohackers/mobinthemiddle"
 )
 
 func main() {
-	unusualdbprogram.StartServer()
+	mobinthemiddle.StartServer()
 }
