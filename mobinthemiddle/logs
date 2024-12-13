@@ -1,0 +1,55 @@
+[Fri Dec 13 07:50:52 2024 UTC] [0simple.test] NOTE:check starts
+[Fri Dec 13 07:50:53 2024 UTC] [0simple.test] NOTE:checking whether basic chat works
+[Fri Dec 13 07:50:54 2024 UTC] [0simple.test] NOTE:PinkDev276 connected to 35.173.238.131 port 8000
+[Fri Dec 13 07:50:55 2024 UTC] [0simple.test] NOTE:PinkAlice435 connected to 35.173.238.131 port 8000
+[Fri Dec 13 07:50:55 2024 UTC] [0simple.test] NOTE:PinkAlice435 joined the chat room
+[Fri Dec 13 07:50:55 2024 UTC] [0simple.test] NOTE:PinkDev276 joined the chat room
+[Fri Dec 13 07:51:03 2024 UTC] [0simple.test] PASS
+[Fri Dec 13 07:51:04 2024 UTC] [1payment.test] NOTE:check starts
+[Fri Dec 13 07:51:05 2024 UTC] [1payment.test] NOTE:checking whether address rewriting works
+[Fri Dec 13 07:51:06 2024 UTC] [1payment.test] NOTE:ProtoAlice449 connected to 35.173.238.131 port 8000
+[Fri Dec 13 07:51:07 2024 UTC] [1payment.test] NOTE:ProtoDev560 connected to 35.173.238.131 port 8000
+[Fri Dec 13 07:51:07 2024 UTC] [1payment.test] NOTE:ProtoAlice449 joined the chat room
+[Fri Dec 13 07:51:07 2024 UTC] [1payment.test] NOTE:ProtoDev560 joined the chat room
+[Fri Dec 13 07:51:15 2024 UTC] [1payment.test] PASS
+[Fri Dec 13 07:51:16 2024 UTC] [2conference.test] NOTE:check starts
+[Fri Dec 13 07:51:17 2024 UTC] [2conference.test] NOTE:checking address rewriting in both directions
+[Fri Dec 13 07:51:18 2024 UTC] [2conference.test] NOTE:BlueBob540 connected to 35.173.238.131 port 8000
+[Fri Dec 13 07:51:19 2024 UTC] [2conference.test] NOTE:BlueHatter70 connected to 35.173.238.131 port 8000
+[Fri Dec 13 07:51:19 2024 UTC] [2conference.test] NOTE:BrownCharlie357 connected to 35.173.238.131 port 8000
+[Fri Dec 13 07:51:19 2024 UTC] [2conference.test] NOTE:SlimyFrank471 connected to 35.173.238.131 port 8000
+[Fri Dec 13 07:51:20 2024 UTC] [2conference.test] NOTE:SmallHunter531 connected to 35.173.238.131 port 8000
+[Fri Dec 13 07:51:20 2024 UTC] [2conference.test] NOTE:ProtoSmith176 connected to 35.173.238.131 port 8000
+[Fri Dec 13 07:51:21 2024 UTC] [2conference.test] NOTE:BrownDev5 connected to 35.173.238.131 port 8000
+[Fri Dec 13 07:51:21 2024 UTC] [2conference.test] NOTE:SmallFred596 connected to 35.173.238.131 port 8000
+[Fri Dec 13 07:51:21 2024 UTC] [2conference.test] NOTE:BlueBob540 joined the chat room
+[Fri Dec 13 07:51:22 2024 UTC] [2conference.test] NOTE:BlueHatter70 joined the chat room
+[Fri Dec 13 07:51:22 2024 UTC] [2conference.test] NOTE:BrownCharlie357 joined the chat room
+[Fri Dec 13 07:51:22 2024 UTC] [2conference.test] NOTE:RedCoder504 joined the chat room
+[Fri Dec 13 07:51:23 2024 UTC] [2conference.test] NOTE:SlimyFrank471 joined the chat room
+[Fri Dec 13 07:51:23 2024 UTC] [2conference.test] NOTE:SmallHunter531 joined the chat room
+[Fri Dec 13 07:51:23 2024 UTC] [2conference.test] NOTE:ProtoSmith176 joined the chat room
+[Fri Dec 13 07:51:24 2024 UTC] [2conference.test] NOTE:BrownDev5 joined the chat room
+[Fri Dec 13 07:51:24 2024 UTC] [2conference.test] NOTE:SmallFred596 joined the chat room
+[Fri Dec 13 07:51:31 2024 UTC] [2conference.test] NOTE:Tony9617951 joined the chat room
+[Fri Dec 13 07:51:32 2024 UTC] [2conference.test] NOTE:Tony9617951 (fully joined) disconnected
+[Fri Dec 13 07:51:32 2024 UTC] [2conference.test] NOTE:BlueBob540 (fully joined) disconnected
+[Fri Dec 13 07:51:35 2024 UTC] [2conference.test] PASS
+[Fri Dec 13 07:51:36 2024 UTC] [3trickle.test] NOTE:check starts
+[Fri Dec 13 07:51:37 2024 UTC] [3trickle.test] NOTE:checking messages sent 1 character at a time
+[Fri Dec 13 07:51:38 2024 UTC] [3trickle.test] NOTE:PinkCoder592 connected to 35.173.238.131 port 8000
+[Fri Dec 13 07:51:38 2024 UTC] [3trickle.test] NOTE:SaneSmith138 connected to 35.173.238.131 port 8000
+[Fri Dec 13 07:51:39 2024 UTC] [3trickle.test] NOTE:PinkCoder592 joined the chat room
+[Fri Dec 13 07:51:39 2024 UTC] [3trickle.test] NOTE:SaneSmith138 joined the chat room
+[Fri Dec 13 07:51:55 2024 UTC] [3trickle.test] PASS
+[Fri Dec 13 07:51:56 2024 UTC] [4notbogus.test] NOTE:check starts
+[Fri Dec 13 07:51:57 2024 UTC] [4notbogus.test] NOTE:checking non-replacement of non-boguscoin addresses
+[Fri Dec 13 07:51:58 2024 UTC] [4notbogus.test] NOTE:ProtoBob385 connected to 35.173.238.131 port 8000
+[Fri Dec 13 07:51:58 2024 UTC] [4notbogus.test] NOTE:CrazyEdward715 connected to 35.173.238.131 port 8000
+[Fri Dec 13 07:51:59 2024 UTC] [4notbogus.test] NOTE:ProtoBob385 joined the chat room
+[Fri Dec 13 07:51:59 2024 UTC] [4notbogus.test] NOTE:CrazyEdward715 joined the chat room
+[Fri Dec 13 07:52:04 2024 UTC] [4notbogus.test] PASS
+[Fri Dec 13 07:52:05 2024 UTC] [5badname.test] NOTE:check starts
+[Fri Dec 13 07:52:05 2024 UTC] [5badname.test] NOTE:checking a user who quits without sending newline after name
+[Fri Dec 13 07:52:07 2024 UTC] [5badname.test] NOTE:BlueMike277 connected to 35.173.238.131 port 8000
+[Fri Dec 13 07:52:10 2024 UTC] [5badname.test] PASS
