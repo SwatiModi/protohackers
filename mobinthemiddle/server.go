@@ -2,30 +2,16 @@ package mobinthemiddle
 
 import (
 	"bufio"
-	"io"
 	"log"
 	"net"
 	"regexp"
+	"strings"
 	"sync"
 )
 
-func RewriteAddresses(data string) string {
-	expr := regexp.MustCompile(`(^|\s)7[a-zA-Z0-9]{26,35}($|\s)`)
-	tonysAddress := "7YWHMfk9JZe0LM0g1ZauHuiSxhI"
+var boguscoin = regexp.MustCompile(`^7[a-zA-Z0-9]{25,34}$`)
 
-	return expr.ReplaceAllStringFunc(data, func(match string) string {
-		// Preserve leading/trailing space
-		if match[0] == ' ' {
-			return " " + tonysAddress
-		}
-		if match[len(match)-1] == ' ' {
-			return tonysAddress + " "
-		}
-		return tonysAddress
-	})
-}
-
-func initUpstreamConnection() (net.Conn, error) {
+func getUpstreamConnection() (net.Conn, error) {
 	addr := "chat.protohackers.com:16963"
 	return net.Dial("tcp", addr)
 }
@@ -63,7 +49,7 @@ func handleClient(downstream net.Conn) {
 	defer downstream.Close()
 
 	// Create a new upstream connection
-	upstream, err := initUpstreamConnection()
+	upstream, err := getUpstreamConnection()
 	if err != nil {
 		log.Printf("Error creating upstream connection: %v", err)
 		return
@@ -80,33 +66,29 @@ func handleClient(downstream net.Conn) {
 	wg.Wait()
 }
 
-func broker(src, dest net.Conn, wg *sync.WaitGroup) {
+func broker(src, dst net.Conn, wg *sync.WaitGroup) {
 	defer func() {
+		src.Close()
+		dst.Close()
 		wg.Done()
 	}()
 
-	reader := bufio.NewReader(src)
-	writer := bufio.NewWriter(dest)
-
-	for {
-		// Read data
+	for reader := bufio.NewReader(src); ; {
 		data, err := reader.ReadString('\n')
 		if err != nil {
-			if err != io.EOF {
-				log.Printf("Error reading from source: %v", err)
-			}
-			break
+			return
 		}
 
-		// Rewrite Boguscoin addresses
-		data = RewriteAddresses(data)
+		tokens := make([]string, 0, 8)
+		for _, raw := range strings.Split(data[:len(data)-1], " ") {
+			t := boguscoin.ReplaceAllString(raw, "7YWHMfk9JZe0LM0g1ZauHuiSxhI")
+			tokens = append(tokens, t)
+		}
 
-		// Write data
-		_, err = writer.WriteString(data)
+		out := strings.Join(tokens, " ") + "\n"
+		_, err = dst.Write([]byte(out))
 		if err != nil {
-			log.Printf("Error writing to destination: %v", err)
-			break
+			log.Printf("Error writing to destination: %v at %v", err, dst.RemoteAddr().String())
 		}
-		writer.Flush()
 	}
 }
